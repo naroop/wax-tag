@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
+    "format": "prettier --write src/",
     "preview": "vite preview",
     "test:e2e": "cypress run",
     "test:unit": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typegen": "npx pocketbase-typegen --env --out ./src/types/pocketbase-types.ts && npm run format"
   },
   "dependencies": {
     "@capacitor/app": "6.0.1",
@@ -22,6 +24,7 @@
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "ionicons": "^7.0.0",
+    "pocketbase": "^0.21.5",
     "vue": "^3.3.0",
     "vue-router": "^4.2.0"
   },
@@ -37,6 +40,7 @@
     "eslint-plugin-vue": "^9.9.0",
     "jsdom": "^22.1.0",
     "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
     "tailwindcss": "^3.4.14",
     "terser": "^5.4.0",
     "typescript": "^5.1.6",
