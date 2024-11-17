@@ -12,6 +12,8 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (6.0.1):
     - Capacitor
+  - ExxiliCapacitorNfc (0.0.3):
+    - Capacitor
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -21,6 +23,7 @@ DEPENDENCIES:
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+  - "ExxiliCapacitorNfc (from `../../node_modules/@exxili/capacitor-nfc`)"
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -37,6 +40,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/preferences"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
+  ExxiliCapacitorNfc:
+    :path: "../../node_modules/@exxili/capacitor-nfc"
 
 SPEC CHECKSUMS:
   Capacitor: 679f9673fdf30597493a6362a5d5bf233d46abc2
@@ -46,7 +51,8 @@ SPEC CHECKSUMS:
   CapacitorKeyboard: 2700f9b18687be021e28b5a09b59eb151a46d5e0
   CapacitorPreferences: e8284bf740cf8c6d3f25409af3c01df87dfeb5a1
   CapacitorStatusBar: b81d4fb5d4e0064c712018071b3ab4b810b39a63
+  ExxiliCapacitorNfc: ba1726af721ebeba88a8ebae934c7de8b7285264
 
-PODFILE CHECKSUM: fdea1ddcabc975c08a49e735a45dc056d9490b7e
+PODFILE CHECKSUM: 6d8cdfe3ee43c2b42273e39abd8614e88239c51a
 
 COCOAPODS: 1.16.2
