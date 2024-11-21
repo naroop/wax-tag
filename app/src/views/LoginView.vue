@@ -52,7 +52,7 @@ import {
   IonIcon
 } from '@ionic/vue';
 import { lockOpenOutline } from 'ionicons/icons';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import pb from '@/util/pocketbase';
 
 // Types ------------------------------------------------------------------------------
@@ -85,4 +85,9 @@ const handleSubmit = async () => {
 };
 
 // Lifecycle Hooks --------------------------------------------------------------------
+onMounted(() => {
+  if (pb.authStore.isValid) {
+    router.push('/');
+  }
+});
 </script>
