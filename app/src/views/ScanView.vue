@@ -8,14 +8,14 @@
     <ion-content :fullscreen="true">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Scan</ion-title>
+          <ion-title size="large"> Scan </ion-title>
         </ion-toolbar>
       </ion-header>
 
       <div>
-        <ion-button @click="writeNfc" expand="block">Write</ion-button>
+        <ion-button expand="block" @click="writeNfc"> Write </ion-button>
         {{ message }}
-        <ion-button @click="readNfc" expand="block">Read</ion-button>
+        <ion-button expand="block" @click="readNfc"> Read </ion-button>
       </div>
     </ion-content>
   </ion-page>

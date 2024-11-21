@@ -5,5 +5,13 @@
 </template>
 
 <script setup lang="ts">
-import { IonApp, IonRouterOutlet } from '@ionic/vue';
+import { IonApp, IonRouterOutlet, useIonRouter } from '@ionic/vue';
+import pb from './util/pocketbase';
+import { onMounted } from 'vue';
+
+const router = useIonRouter();
+
+onMounted(() => {
+  if (!pb.authStore.isValid) router.navigate('/login', 'none', 'replace');
+});
 </script>

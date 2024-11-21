@@ -9,7 +9,7 @@ const preferencesAsyncAuthStore = new AsyncAuthStore({
   clear: async () => await Preferences.remove({ key: authKey })
 });
 
-const pb = new PocketBase('http://127.0.0.1:8090/', preferencesAsyncAuthStore) as TypedPocketBase;
+const pb = new PocketBase('https://wax-tag-dev.pockethost.io/', preferencesAsyncAuthStore) as TypedPocketBase;
 
 export const authStoreInit = async () => {
   const serialized = (await Preferences.get({ key: authKey })).value;

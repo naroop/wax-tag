@@ -1,24 +1,57 @@
 <template>
   <ion-page>
     <ion-content>
-      <ion-card>
-        <ion-card-content>
-          <ion-card-title> Log In </ion-card-title>
-          <form>
-            <ion-input v-model="email" label="Email" label-placement="floating" type="email" inputmode="email" placeholder="e@mail.com" />
-            <ion-input v-model="password" label="Password" label-placement="floating" type="password" inputmode="text" />
-          </form>
-          <ion-button class="mt-2" expand="block" fill="outline" @click="handleSubmit" color="success">Submit</ion-button>
-          <ion-button class="mt-2" expand="block" fill="outline" @click="handleFetchAuth">Fetch Auth</ion-button>
-          <ion-button class="mt-2" expand="block" fill="outline" @click="pb.authStore.clear()" color="danger">Clear Auth</ion-button>
-        </ion-card-content>
-      </ion-card>
+      <div class="flex flex-col justify-center h-[80%]">
+        <div class="flex justify-center w-full">
+          <ion-icon class="text-[64px]" :icon="lockOpenOutline" />
+        </div>
+        <ion-card>
+          <ion-card-content>
+            <ion-card-title> Log In </ion-card-title>
+            <form>
+              <ion-input
+                v-model="email"
+                label="Email"
+                label-placement="stacked"
+                type="email"
+                inputmode="email"
+                helper-text=" "
+                placeholder="e@mail.com"
+              />
+              <ion-input
+                v-model="password"
+                label="Password"
+                label-placement="stacked"
+                type="password"
+                inputmode="text"
+                helper-text=" "
+              >
+                <ion-input-password-toggle slot="end" />
+              </ion-input>
+            </form>
+            <ion-button class="mt-2 mb-4" expand="block" @click="handleSubmit"> Sign In </ion-button>
+            <p class="text-center">Don't have an account? <a @click="router.push('/create-account')">Create one.</a></p>
+          </ion-card-content>
+        </ion-card>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonCard, IonCardContent, IonCardTitle, IonInput, IonButton } from '@ionic/vue';
+import {
+  IonPage,
+  IonCard,
+  IonContent,
+  IonCardContent,
+  IonCardTitle,
+  IonInput,
+  IonButton,
+  IonInputPasswordToggle,
+  useIonRouter,
+  IonIcon
+} from '@ionic/vue';
+import { lockOpenOutline } from 'ionicons/icons';
 import { ref } from 'vue';
 import pb from '@/util/pocketbase';
 
@@ -31,6 +64,7 @@ import pb from '@/util/pocketbase';
 // Variables --------------------------------------------------------------------------
 
 // Reactive Variables -----------------------------------------------------------------
+const router = useIonRouter();
 const email = ref('');
 const password = ref('');
 // Provided ---------------------------------------------------------------------------
@@ -44,11 +78,11 @@ const password = ref('');
 // Methods ----------------------------------------------------------------------------
 const handleSubmit = async () => {
   await pb.collection('users').authWithPassword(email.value, password.value);
+
+  if (pb.authStore.isValid) {
+    router.push('/');
+  }
 };
 
-const handleFetchAuth = () => {
-  console.log(pb.authStore.token);
-  console.log(pb.authStore.isValid);
-};
 // Lifecycle Hooks --------------------------------------------------------------------
 </script>
