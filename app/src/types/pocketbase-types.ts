@@ -48,7 +48,7 @@ export type MastersRecord = {
 };
 
 export type UsersRecord = {
-  avatar?: string;
+  discogsUsername?: string;
 };
 
 // Response types include system fields and match responses from the PocketBase API

@@ -10,7 +10,7 @@
         <ion-toolbar>
           <ion-title size="large"> Scan </ion-title>
           <ion-buttons slot="end" class="mt-1 mr-2">
-            <ion-button @click="router.push('/settings')">
+            <ion-button @click="ionRouter.push('/settings')">
               <ion-icon size="large" color="primary" :icon="settingsOutline" aria-label="Settings" />
             </ion-button>
           </ion-buttons>
@@ -51,7 +51,7 @@ const nfcMessage: NDEFWriteOptions = {
   ]
 };
 
-const router = useIonRouter();
+const ionRouter = useIonRouter();
 
 const message = ref('');
 
