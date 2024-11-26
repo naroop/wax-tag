@@ -11,7 +11,8 @@
           <ion-title size="large"> Collection </ion-title>
           <ion-buttons slot="end" class="mt-1 mr-2">
             <ion-button @click="handleSync">
-              <ion-icon size="large" color="primary" :icon="sync" aria-label="Sync" />
+              <ion-icon v-if="!isSyncLoading" size="large" color="primary" :icon="sync" aria-label="Sync" />
+              <ion-spinner v-else name="lines-sharp" />
             </ion-button>
             <ion-button @click="ionRouter.push('/profile')">
               <ion-icon size="large" color="primary" :icon="personOutline" aria-label="Profile" />
@@ -19,6 +20,20 @@
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
+
+      <ion-list v-if="collection.length">
+        <ion-item v-for="album in collection" :key="album.id">
+          <ion-img class="w-24 py-2" :src="album.expand?.master.imageUrl" />
+          <ion-label class="pl-4">
+            <h3 class="m-0">{{ album.expand?.master.title }}</h3>
+            <p class="m-0">{{ album.expand?.master.artist }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <div v-else class="flex justify-center items-center w-full h-[80%]">
+        <ion-spinner name="lines-sharp" />
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -28,19 +43,24 @@ import { Collections, CollectionsResponse, MastersRecord, MastersResponse } from
 import discogsApi from '@/util/discogs';
 import pb from '@/util/pocketbase';
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  useIonRouter,
-  IonButtons,
+  IonSpinner,
+  IonImg,
   IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
   IonIcon,
-  toastController
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  toastController,
+  useIonRouter,
+  IonList,
+  IonItem
 } from '@ionic/vue';
 import axios from 'axios';
 import { personOutline, sync } from 'ionicons/icons';
+import { onMounted, ref } from 'vue';
 
 interface DiscogsMasterResponse {
   id: number;
@@ -49,30 +69,63 @@ interface DiscogsMasterResponse {
   title: string;
 }
 
+const collection = ref<CollectionsResponse<{ master: MastersResponse }>[]>([]);
 const ionRouter = useIonRouter();
 
+const isSyncLoading = ref(false);
+
+const reloadCollection = async () => {
+  collection.value = [];
+  collection.value = await pb
+    .collection(Collections.Collections)
+    .getFullList<
+      CollectionsResponse<{ master: MastersResponse }>
+    >({ filter: `user = "${pb.authStore.model!.id}"`, expand: 'master', sort: 'master.title' });
+};
+
 const handleSync = async () => {
-  const storedCollection = await pb
+  const onFunctionEnd = async () => {
+    const toast = await toastController.create({
+      message: 'Collection synced.',
+      duration: 1500,
+      color: 'success',
+      position: 'bottom'
+    });
+    await toast.present();
+    reloadCollection();
+    isSyncLoading.value = false;
+  };
+
+  isSyncLoading.value = true;
+  const fetchedCollection = await pb
     .collection(Collections.Collections)
     .getFullList<
       CollectionsResponse<{ master: MastersResponse }>
     >({ filter: `user = "${pb.authStore.model!.id}"`, expand: 'master' });
-  console.log("Fetched user's collection. Found " + storedCollection.length + ' albums.');
+  const idsInCollection = fetchedCollection.map((m) => m.expand?.master.discogsId);
+  console.log("Fetched user's collection. Found " + idsInCollection.length + ' albums.');
 
-  const storedDiscogsMasterIdsForUser = storedCollection.map((m) => m.expand?.master.discogsId);
+  const releasesInDiscogsCollection = await discogsApi.get(
+    `/users/${pb.authStore.model!.discogsUsername}/collection/folders/0/releases`
+  );
+  const idsInDiscogsCollection: number[] = releasesInDiscogsCollection.data.releases.map(
+    (r: any) => r.basic_information.master_id
+  );
+  console.log("Fetched user's collection from Discogs. Found " + idsInDiscogsCollection.length + ' releases inside.');
 
-  const releases = await discogsApi.get(`/users/${pb.authStore.model!.discogsUsername}/collection/folders/0/releases`);
-  console.log("Fetched user's collection from Discogs. Found " + releases.data.releases.length + ' releases inside.');
+  const missingIds: number[] = idsInDiscogsCollection.filter((id) => !idsInCollection.includes(id));
 
-  const discogsMasterIdsToFetch: number[] = releases.data.releases
-    .filter((r: any) => !storedDiscogsMasterIdsForUser.some((masterId) => masterId === r.basic_information.master_id))
-    .map((r: any) => r.basic_information.master_id);
+  if (!missingIds.length) {
+    onFunctionEnd();
+    return;
+  }
 
   const masterIdsToAddToCollection: string[] = [];
 
-  const filter = discogsMasterIdsToFetch.map((id) => `discogsId = "${id}"`).join(' || ');
-  const storedMasters = await pb.collection('masters').getFullList({ filter });
-  masterIdsToAddToCollection.push(...storedMasters.map((m) => m.id));
+  const filter = missingIds.map((id) => `discogsId = "${id}"`).join(' || ');
+  const missingMastersFoundInMastersTable = await pb.collection('masters').getFullList({ filter });
+  const idsFoundInMastersTable = missingMastersFoundInMastersTable.map((m) => m.discogsId);
+  masterIdsToAddToCollection.push(...missingMastersFoundInMastersTable.map((m) => m.id));
 
   const mastersRecordsToCreate: MastersRecord[] = [];
 
@@ -104,37 +157,36 @@ const handleSync = async () => {
     }
   };
 
-  const fetchMasterPromises = discogsMasterIdsToFetch
-    .filter((id) => !storedMasters.some((storedMaster) => storedMaster.discogsId === id))
+  const fetchMasterPromises = missingIds
+    .filter((id) => !idsFoundInMastersTable.includes(id))
     .map((id) => fetchWithRetry(id));
   console.log('Need to fetch ' + fetchMasterPromises.length + ' masters from Discogs.');
 
-  console.log('Fetching...');
-  const fetchMasterResults = await Promise.all(fetchMasterPromises);
-  console.log('Done.');
+  if (fetchMasterPromises.length > 0) {
+    console.log('Fetching...');
+    const fetchMasterResults = await Promise.all(fetchMasterPromises);
+    console.log('Done.');
 
-  mastersRecordsToCreate.push(...fetchMasterResults.filter((result): result is MastersRecord => result !== null));
-  const createMastersResults: any[] = [];
-  for (const master of mastersRecordsToCreate) {
-    const result = await pb.collection(Collections.Masters).create(master, { requestKey: null });
-    createMastersResults.push(result);
+    mastersRecordsToCreate.push(...fetchMasterResults.filter((result): result is MastersRecord => result !== null));
+    const createMastersResults: any[] = [];
+    for (const master of mastersRecordsToCreate) {
+      const result = await pb.collection(Collections.Masters).create(master, { requestKey: null });
+      createMastersResults.push(result);
+    }
+    console.log('Finished creating new masters on our servers.');
+
+    masterIdsToAddToCollection.push(...createMastersResults.map((result) => result.id));
   }
-  console.log('Finished creating new masters on our servers.');
-
-  masterIdsToAddToCollection.push(...createMastersResults.map((result) => result.id));
 
   for (const id of masterIdsToAddToCollection) {
     await pb.collection(Collections.Collections).create({ user: pb.authStore.model!.id, master: id }, { requestKey: null });
   }
   console.log('Finished adding new entries to the collections table.');
 
-  const toast = await toastController.create({
-    message: 'Collection synced.',
-    duration: 1500,
-    color: 'success',
-    position: 'bottom'
-  });
-
-  await toast.present();
+  onFunctionEnd();
 };
+
+onMounted(() => {
+  reloadCollection();
+});
 </script>

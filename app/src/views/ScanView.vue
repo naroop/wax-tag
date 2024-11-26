@@ -9,11 +9,6 @@
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large"> Scan </ion-title>
-          <ion-buttons slot="end" class="mt-1 mr-2">
-            <ion-button @click="ionRouter.push('/settings')">
-              <ion-icon size="large" color="primary" :icon="settingsOutline" aria-label="Settings" />
-            </ion-button>
-          </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
@@ -27,19 +22,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonButton,
-  IonIcon,
-  IonButtons,
-  useIonRouter
-} from '@ionic/vue';
-import { settingsOutline } from 'ionicons/icons';
-import { NFC, NDEFWriteOptions, NFCError } from '@exxili/capacitor-nfc';
+import { NDEFWriteOptions, NFC, NFCError } from '@exxili/capacitor-nfc';
+import { IonButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, useIonRouter } from '@ionic/vue';
 import { ref } from 'vue';
 
 const nfcMessage: NDEFWriteOptions = {
