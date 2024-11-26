@@ -21,19 +21,7 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-list v-if="collection.length">
-        <ion-item v-for="album in collection" :key="album.id">
-          <ion-img class="w-24 py-2" :src="album.expand?.master.imageUrl" />
-          <ion-label class="pl-4">
-            <h3 class="m-0">{{ album.expand?.master.title }}</h3>
-            <p class="m-0">{{ album.expand?.master.artist }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
-
-      <div v-else class="flex justify-center items-center w-full h-[80%]">
-        <ion-spinner name="lines-sharp" />
-      </div>
+      <collection-list ref="collectionList" />
     </ion-content>
 
     <profile-modal ref="profileModal" :presenting-element="$el" />
@@ -41,21 +29,17 @@
 </template>
 
 <script setup lang="ts">
+import CollectionList from '@/components/CollectionList.vue';
 import ProfileModal from '@/components/ProfileModal.vue';
 import { Collections, CollectionsResponse, MastersRecord, MastersResponse } from '@/types/pocketbase-types';
-import { reloadCollection } from '@/util/collection';
 import discogsApi from '@/util/discogs';
 import pb from '@/util/pocketbase';
-import { Preferences } from '@capacitor/preferences';
 import {
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
-  IonImg,
-  IonItem,
-  IonList,
   IonPage,
   IonSpinner,
   IonTitle,
@@ -64,7 +48,7 @@ import {
 } from '@ionic/vue';
 import axios from 'axios';
 import { personOutline, sync } from 'ionicons/icons';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 interface DiscogsMasterResponse {
   id: number;
@@ -74,17 +58,9 @@ interface DiscogsMasterResponse {
 }
 
 const profileModal = ref({} as InstanceType<typeof ProfileModal>);
-
-const collection = ref<CollectionsResponse<{ master: MastersResponse }>[]>([]);
+const collectionList = ref({} as InstanceType<typeof CollectionList>);
 
 const isSyncLoading = ref(false);
-
-const loadCollection = async (reload: boolean = false) => {
-  collection.value = [];
-  if (reload) await reloadCollection();
-  const storedCollection = await Preferences.get({ key: 'collection' });
-  collection.value = JSON.parse(storedCollection.value ?? '[]') as CollectionsResponse<{ master: MastersResponse }>[];
-};
 
 const handleSync = async () => {
   const onFunctionEnd = async () => {
@@ -95,7 +71,7 @@ const handleSync = async () => {
       position: 'bottom'
     });
     await toast.present();
-    loadCollection(true);
+    collectionList.value.reload(true);
     isSyncLoading.value = false;
   };
 
@@ -188,8 +164,4 @@ const handleSync = async () => {
 
   onFunctionEnd();
 };
-
-onMounted(() => {
-  loadCollection();
-});
 </script>
