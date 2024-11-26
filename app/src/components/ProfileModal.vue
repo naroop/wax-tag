@@ -1,9 +1,10 @@
 <template>
-  <ion-page>
+  <ion-modal ref="modal" :is-open="isOpen" :presenting-element="presentingElement" @did-dismiss="close">
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button text="Collection" default-href="/collection" />
+        <ion-title>Profile</ion-title>
+        <ion-buttons slot="end">
+          <ion-button @click="close">Close</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -56,15 +57,13 @@
         <li>Copy your token and paste it into the input above.</li>
       </ol>
     </ion-content>
-  </ion-page>
+  </ion-modal>
 </template>
 
 <script setup lang="ts">
 import {
-  IonPage,
+  IonModal,
   IonToolbar,
-  IonButtons,
-  IonBackButton,
   IonHeader,
   IonContent,
   IonTitle,
@@ -78,6 +77,12 @@ import {
 import pb from '@/util/pocketbase';
 import { computed, onMounted, ref } from 'vue';
 import { Preferences } from '@capacitor/preferences';
+
+defineProps<{ presentingElement: HTMLElement }>();
+
+const modal = ref({} as InstanceType<typeof IonModal>);
+
+const isOpen = ref(false);
 
 const email = ref('');
 
@@ -93,6 +98,16 @@ const isUpdateProfileDisabled = computed(() => {
 });
 
 const ionRouter = useIonRouter();
+
+const open = () => {
+  isOpen.value = true;
+};
+
+const close = () => {
+  isOpen.value = false;
+};
+
+defineExpose({ open, close });
 
 const validateDiscogsApiKey = async () => {
   if (discogsApiKey.value.length === 40) {

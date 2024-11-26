@@ -14,7 +14,7 @@
               <ion-icon v-if="!isSyncLoading" size="large" color="primary" :icon="sync" aria-label="Sync" />
               <ion-spinner v-else name="lines-sharp" />
             </ion-button>
-            <ion-button @click="ionRouter.push('/profile')">
+            <ion-button @click="profileModal.open()">
               <ion-icon size="large" color="primary" :icon="personOutline" aria-label="Profile" />
             </ion-button>
           </ion-buttons>
@@ -35,28 +35,32 @@
         <ion-spinner name="lines-sharp" />
       </div>
     </ion-content>
+
+    <profile-modal ref="profileModal" :presenting-element="$el" />
   </ion-page>
 </template>
 
 <script setup lang="ts">
+import ProfileModal from '@/components/ProfileModal.vue';
 import { Collections, CollectionsResponse, MastersRecord, MastersResponse } from '@/types/pocketbase-types';
+import { reloadCollection } from '@/util/collection';
 import discogsApi from '@/util/discogs';
 import pb from '@/util/pocketbase';
+import { Preferences } from '@capacitor/preferences';
 import {
-  IonSpinner,
-  IonImg,
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
+  IonImg,
+  IonItem,
+  IonList,
   IonPage,
+  IonSpinner,
   IonTitle,
   IonToolbar,
-  toastController,
-  useIonRouter,
-  IonList,
-  IonItem
+  toastController
 } from '@ionic/vue';
 import axios from 'axios';
 import { personOutline, sync } from 'ionicons/icons';
@@ -69,18 +73,17 @@ interface DiscogsMasterResponse {
   title: string;
 }
 
+const profileModal = ref({} as InstanceType<typeof ProfileModal>);
+
 const collection = ref<CollectionsResponse<{ master: MastersResponse }>[]>([]);
-const ionRouter = useIonRouter();
 
 const isSyncLoading = ref(false);
 
-const reloadCollection = async () => {
+const loadCollection = async (reload: boolean = false) => {
   collection.value = [];
-  collection.value = await pb
-    .collection(Collections.Collections)
-    .getFullList<
-      CollectionsResponse<{ master: MastersResponse }>
-    >({ filter: `user = "${pb.authStore.model!.id}"`, expand: 'master', sort: 'master.title' });
+  if (reload) await reloadCollection();
+  const storedCollection = await Preferences.get({ key: 'collection' });
+  collection.value = JSON.parse(storedCollection.value ?? '[]') as CollectionsResponse<{ master: MastersResponse }>[];
 };
 
 const handleSync = async () => {
@@ -92,7 +95,7 @@ const handleSync = async () => {
       position: 'bottom'
     });
     await toast.present();
-    reloadCollection();
+    loadCollection(true);
     isSyncLoading.value = false;
   };
 
@@ -187,6 +190,6 @@ const handleSync = async () => {
 };
 
 onMounted(() => {
-  reloadCollection();
+  loadCollection();
 });
 </script>
