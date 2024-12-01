@@ -100,8 +100,9 @@ const handleUpdateProfile = () => {
     });
 };
 
-const handleSignOut = () => {
+const handleSignOut = async () => {
   pb.authStore.clear();
+  Preferences.clear();
   ionRouter.replace('/login');
 };
 
