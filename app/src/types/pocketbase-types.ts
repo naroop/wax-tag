@@ -7,6 +7,7 @@ import type { RecordService } from 'pocketbase';
 
 export enum Collections {
   Collections = 'collections',
+  History = 'history',
   Masters = 'masters',
   Users = 'users'
 }
@@ -40,6 +41,11 @@ export type CollectionsRecord = {
   user?: RecordIdString;
 };
 
+export type HistoryRecord = {
+  field?: RecordIdString;
+  user?: RecordIdString;
+};
+
 export type MastersRecord = {
   artist?: string;
   discogsId: number;
@@ -53,6 +59,7 @@ export type UsersRecord = {
 
 // Response types include system fields and match responses from the PocketBase API
 export type CollectionsResponse<Texpand = unknown> = Required<CollectionsRecord> & BaseSystemFields<Texpand>;
+export type HistoryResponse<Texpand = unknown> = Required<HistoryRecord> & BaseSystemFields<Texpand>;
 export type MastersResponse<Texpand = unknown> = Required<MastersRecord> & BaseSystemFields<Texpand>;
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>;
 
@@ -60,12 +67,14 @@ export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSyste
 
 export type CollectionRecords = {
   collections: CollectionsRecord;
+  history: HistoryRecord;
   masters: MastersRecord;
   users: UsersRecord;
 };
 
 export type CollectionResponses = {
   collections: CollectionsResponse;
+  history: HistoryResponse;
   masters: MastersResponse;
   users: UsersResponse;
 };
@@ -75,6 +84,7 @@ export type CollectionResponses = {
 
 export type TypedPocketBase = PocketBase & {
   collection(idOrName: 'collections'): RecordService<CollectionsResponse>;
+  collection(idOrName: 'history'): RecordService<HistoryResponse>;
   collection(idOrName: 'masters'): RecordService<MastersResponse>;
   collection(idOrName: 'users'): RecordService<UsersResponse>;
 };

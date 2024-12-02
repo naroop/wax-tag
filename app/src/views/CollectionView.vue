@@ -71,7 +71,7 @@ const handleSync = async () => {
       position: 'bottom'
     });
     await toast.present();
-    collectionList.value.reload(true);
+    collectionList.value.refresh(true);
     isSyncLoading.value = false;
   };
 

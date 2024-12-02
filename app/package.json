@@ -11,7 +11,7 @@
     "test:e2e": "cypress run",
     "test:unit": "vitest",
     "lint": "eslint . --fix",
-    "typegen": "npx pocketbase-typegen --env --out ./src/types/pocketbase-types.ts && npm run format"
+    "typegen": "npx pocketbase-typegen@1.2.1 --env --out ./src/types/pocketbase-types.ts && npm run format"
   },
   "dependencies": {
     "@capacitor/app": "6.0.1",

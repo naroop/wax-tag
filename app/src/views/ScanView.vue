@@ -17,10 +17,7 @@
         </ion-toolbar>
       </ion-header>
 
-      <div>
-        <ion-button expand="block" @click="readNfc"> Read </ion-button>
-        {{ message }}
-      </div>
+      <ion-button expand="block" @click="readNfc"> Read </ion-button>
     </ion-content>
 
     <write-nfc-modal ref="modal" :presenting-element="$el" />
@@ -29,26 +26,47 @@
 
 <script setup lang="ts">
 import WriteNfcModal from '@/components/WriteNfcModal.vue';
+import { Collections } from '@/types/pocketbase-types';
+import pb from '@/util/pocketbase';
 import { NFC } from '@exxili/capacitor-nfc';
-import { IonButton, IonButtons, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonButton, IonButtons, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, toastController } from '@ionic/vue';
 import { add } from 'ionicons/icons';
 import { ref } from 'vue';
 
 const modal = ref({} as InstanceType<typeof WriteNfcModal>);
 
-const message = ref('');
-
 const readNfc = () => {
-  NFC.startScan().catch((error) => {
-    message.value = error;
-  });
+  NFC.startScan().catch(console.error);
 };
 
-NFC.addListener('nfcTag', (data) => {
-  message.value = data.messages[0].records[0].payload;
+const createHistoryRecord = async (masterId: string) => {
+  if (masterId.length != 15) {
+    const toast = await toastController.create({
+      message: 'Tag data is not compatible.',
+      duration: 1500,
+      color: 'danger',
+      position: 'bottom'
+    });
+    await toast.present();
+    return;
+  }
+
+  pb.collection(Collections.History)
+    .create({ user: pb.authStore.model?.id, master: masterId })
+    .then(async () => {
+      const toast = await toastController.create({
+        message: 'Listen recorded.',
+        duration: 1500,
+        color: 'success',
+        position: 'bottom'
+      });
+      await toast.present();
+    });
+};
+
+NFC.addListener('nfcTag', async (data) => {
+  createHistoryRecord(data.messages[0].records[0].payload);
 });
 
-NFC.addListener('nfcError', () => {
-  message.value = 'something bad';
-});
+NFC.addListener('nfcError', console.error);
 </script>

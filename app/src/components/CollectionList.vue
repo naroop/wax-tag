@@ -6,7 +6,7 @@
       :button="buttons"
       @click="if (buttons) $emit('item-click', album.id);"
     >
-      <ion-img class="w-24 py-2" :src="album.expand?.master.imageUrl" />
+      <ion-img class="w-20 py-2" :src="album.expand?.master.imageUrl" />
       <ion-label class="pl-4">
         <h3 class="m-0">{{ album.expand?.master.title }}</h3>
         <p class="m-0">{{ album.expand?.master.artist }}</p>
@@ -35,7 +35,7 @@ const isContentLoading = ref(false);
 
 const collection = ref<CollectionEntry[]>();
 
-const reload = async (reload: boolean = false) => {
+const refresh = async (reload: boolean = false) => {
   isContentLoading.value = true;
   if (reload) await reloadCollection();
   const storedCollection = await Preferences.get({ key: 'collection' });
@@ -43,7 +43,7 @@ const reload = async (reload: boolean = false) => {
   isContentLoading.value = false;
 };
 
-defineExpose({ reload });
+defineExpose({ refresh });
 
 const reloadCollection = async () => {
   const fetchedCollection = await pb
@@ -56,6 +56,6 @@ const reloadCollection = async () => {
 };
 
 onMounted(() => {
-  reload();
+  refresh();
 });
 </script>
